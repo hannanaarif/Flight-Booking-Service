@@ -1,11 +1,9 @@
 const express=require('express');
 const {InfoController}=require('../../controllers');
 const router=express.Router();
-
-console.log("Reached V1");
-
+const bookingRoutes=require('./booking');
 
 router.get('/info',InfoController.info);
-
+router.use('/bookings',bookingRoutes);
 
 module.exports=router;
