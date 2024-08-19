@@ -2,6 +2,7 @@ const {StatusCodes}=require('http-status-codes');
 const {BookingService}=require('../services');
 const { response } = require('express');
 const {SuccessResponse,ErrorResponse} = require('../utils/common');
+const booking = require('../models/booking');
 
 
 async function createBooking(req,res){
@@ -12,7 +13,6 @@ async function createBooking(req,res){
             userId:req.body.userId,
             noofSeats:req.body.noofSeats,
         })
-        console.log(flight);
         SuccessResponse.data=flight;
         return res
         .status(StatusCodes.CREATED)
@@ -26,6 +26,27 @@ async function createBooking(req,res){
     }
 }
 
+async function makePayment(req,res){
+    try {
+        console.log('payment controller');
+        const flight=await BookingService.makePayment({
+           totalCost:req.body.totalCost,
+           userId:req.body.userId,
+           bookingId:req.body.bookingId
+        })
+        SuccessResponse.data=flight;
+        return res
+        .status(StatusCodes.CREATED)
+        .json(SuccessResponse)
+           
+    } catch (error) {
+        ErrorResponse.error=error;
+        return res.status(error.statuscode)
+        .json(ErrorResponse);
+    }
+}
+
 module.exports={
     createBooking,
+    makePayment
 }
