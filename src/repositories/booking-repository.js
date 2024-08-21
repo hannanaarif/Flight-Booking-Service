@@ -7,17 +7,14 @@ class BookingRepository extends crudRepository{
         super(Booking);
     }
     async createBooking(data,transaction){
-        cosnole.log("Booking Repo");
         const response=await Booking.create(data,{transaction:transaction});
         return response;
     }
     async get(data,transaction){
-        //console.log("Repo Log",this.model);
-        const response=await Booking.findByPk(data,{transaction:transaction});
+        const response=await this.model.findByPk(data,{transaction:transaction});
         if(!response){
          throw new AppError('Not able to find the resource',StatusCodes.NOT_FOUND);
         }
-        //console.log("Repo Log",response);
         return response;     
     }
     async update(id,data,transaction){
@@ -27,7 +24,6 @@ class BookingRepository extends crudRepository{
              id: id
            }
          },{transaction:transaction});
-        console.log("response from Booking Repo",response);
          if (response[0] === 0) {
            const ErrorResponse = {
              message: 'Failed to update the data',
