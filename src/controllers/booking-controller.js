@@ -1,6 +1,5 @@
 const {StatusCodes}=require('http-status-codes');
 const {BookingService}=require('../services');
-const { response } = require('express');
 const {SuccessResponse,ErrorResponse} = require('../utils/common');
 const booking = require('../models/booking');
 const { message } = require('../utils/common/success-response');
@@ -53,6 +52,8 @@ async function makePayment(req,res){
         .json(SuccessResponse)
            
     } catch (error) {
+        console.log("Error from controller",error);
+        console.log("error status code",error.StatusCodes);
         ErrorResponse.error=error;
         return res.status(error.statuscode)
         .json(ErrorResponse);

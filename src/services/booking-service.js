@@ -1,6 +1,6 @@
 const axios=require('axios');
 const {BookingRepository}=require('../repositories');
-const {ServerConfig}=require('../config');
+const {ServerConfig,Queue}=require('../config');
 const db=require('../models');
 const AppError = require('../utils/errors/app-error');
 const { StatusCodes } = require('http-status-codes');
@@ -10,7 +10,6 @@ const {BOOKED,CANCELLED}=Enums.BOOKING_STATUS;
 const bookingRepository= new BookingRepository();
 
 async function createBooking(data){
-      console.log("DATA",data);
       const transaction=await db.sequelize.transaction();
       try {
           const flight=await axios.get(`${ServerConfig.FLIGHT_SERVICE}/api/v1/flights/${data.flightId}`);
@@ -25,13 +24,11 @@ async function createBooking(data){
 
           console.log('Going for booking',bookingPayload);
           const booking=await bookingRepository.create(bookingPayload,transaction);
-          console.log('Going for patch');
           await axios.patch(`${ServerConfig.FLIGHT_SERVICE}/api/v1/flights/${data.flightId}/seats`,{
             seats:data.noofSeats
           });
           await transaction.commit();
           return booking;
-
       } catch(error){
         await transaction.rollback();
         throw error;
@@ -67,15 +64,19 @@ async function makePayment(data){
 
     //we assume here payment is successfull    
     const response=await bookingRepository.update(data.bookingId,{status:BOOKED},transaction);
-
     await transaction.commit();
+    Queue.sendData({
+      recepientEmail:'hannanaarif@gmail.com',
+      subject:'Flight Booked',
+      text:`Booking successfully done for the booking ${data.bookingId}`
+    });
     return response;
     
   } catch (error) {
-    console.log("Error catch makepayments");
+    console.log("Error catch makepayments",error);
     await transaction.rollback();
     if(error instanceof AppError) throw error;
-
+    throw error;
   }
 }
 
